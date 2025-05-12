@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>郵務 預付 清點</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      color: #006699;
+    }
+    .section-label {
+      font-size: 1.2rem;
+      font-weight: bold;
+      background-color: #d9edf7;
+      padding: 5px;
+      margin-top: 30px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+      font-size: 1.1rem;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .subtotal, .total-row {
+      font-weight: bold;
+      background-color: #fcf8e3;
+    }
+    .other-label {
+      text-align: left;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1.1rem;
+      background-color: #ff6666;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    input.qty {
+      width: 50px;
+    }
+    input.price {
+      width: 70px;
+    }
+    @media (max-width: 600px) {
+      th, td {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>郵務 預付 清點</h1>
+  <div id="content"></div>
+  <button onclick="clearQuantities()">清除數量</button>
+
+  <script>
+    const categories = [
+      {
+        label: '一、現金',
+        headers: ['面額', '數量', '金額'],
+        items: ['1000元', '500元', '100元', '50元', '10元', '5元', '1元']
+      },
+      {
+        label: '二、郵票及印花',
+        headers: ['面額', '數量', '金額'],
+        items: [
+          '1元郵票','3元郵票','5元郵票','6元郵票','7元郵票','8元郵票','9元郵票','10元郵票','12元郵票','13元郵票',
+          '15元郵票','16元郵票','20元郵票','25元郵票','28元郵票','32元郵票','35元郵票','43元郵票','50元郵票','100元郵票',
+          '1元印花','3元印花','4元印花','5元印花','10元印花','12元印花','20元印花','50元印花','100元印花','200元印花'
+        ]
+      },
+      {
+        label: '三、05信封類',
+        headers: ['項目', '數量', '金額'],
+        items: ['6元平信', '15元限時', '28元掛號']
+      },
+      {
+        label: '四、便利箱',
+        headers: ['項目', '數量', '金額'],
+        items: ['1元存證信函紙','2元報值信封','65元便利袋','80元1號便利箱','80元2號便利箱','110元3號便利箱','80元4號便利箱','65元5號便利箱','70元寶貝便利袋','80元學生包裹(中)','110元學生包裹(大)']
+      },
+      {
+        label: '五、便利包',
+        headers: ['項目', '數量', '金額'],
+        items: ['1元1號便利包','2元2號便利包','2元3號便利包','45元瓦楞紙箱(大)']
+      },
+      {
+        label: '六、11信封類',
+        headers: ['項目', '數量', '金額'],
+        items: ['1元標準信封','2元中牛信封','3元大牛信封','8元B4牛信封']
+      },
+      {
+        label: '七、其他',
+        headers: ['項目', '數量', '金額'],
+        items: ['5元明信片','210元電腦紙箱','其他(　　　　)','其他(　　　　)','其他(　　　　)','其他(　　　　)']
+      }
+    ];
+
+    function createTable(category, index) {
+      const table = document.createElement('table');
+      const thead = document.createElement('thead');
+      const tbody = document.createElement('tbody');
+      const headerRow = document.createElement('tr');
+
+      category.headers.forEach(header => {
+        const th = document.createElement('th');
+        th.textContent = header;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+
+      category.items.forEach((item, i) => {
+        const tr = document.createElement('tr');
+        const isOther = item.includes('其他');
+        const amount = parseInt(item);
+        const price = isNaN(amount) ? 0 : amount;
+
+        const tdItem = document.createElement('td');
+        tdItem.textContent = item;
+        if (isOther) {
+          tdItem.colSpan = 2;
+          const tdAmount = document.createElement('td');
+          const input = document.createElement('input');
+          input.type = 'number';
+          input.className = 'price';
+          input.dataset.cat = index;
+          input.addEventListener('input', updateTotals);
+          tdAmount.appendChild(input);
+          tr.appendChild(tdItem);
+          tr.appendChild(tdAmount);
+        } else {
+          const tdQty = document.createElement('td');
+          const tdAmount = document.createElement('td');
+          const inputQty = document.createElement('input');
+          inputQty.type = 'number';
+          inputQty.className = 'qty';
+          inputQty.dataset.price = price;
+          inputQty.dataset.cat = index;
+          inputQty.addEventListener('input', updateTotals);
+          const spanAmount = document.createElement('span');
+          spanAmount.className = 'amount';
+          spanAmount.textContent = '0';
+
+          tdQty.appendChild(inputQty);
+          tdAmount.appendChild(spanAmount);
+
+          tr.appendChild(tdItem);
+          tr.appendChild(tdQty);
+          tr.appendChild(tdAmount);
+        }
+        tbody.appendChild(tr);
+      });
+
+      const totalRow = document.createElement('tr');
+      totalRow.className = 'subtotal';
+      totalRow.innerHTML = `<td colspan="2">${category.label.replace('、', '')}合計</td><td class="cat-total" id="cat-${index}-total">0</td>`;
+      tbody.appendChild(totalRow);
+
+      table.appendChild(thead);
+      table.appendChild(tbody);
+      return table;
+    }
+
+    function updateTotals() {
+      let grandTotal = 0;
+      categories.forEach((cat, index) => {
+        let catTotal = 0;
+        document.querySelectorAll(`[data-cat='${index}']`).forEach(input => {
+          if (input.classList.contains('price')) {
+            catTotal += parseInt(input.value || 0);
+          } else {
+            const qty = parseInt(input.value || 0);
+            const price = parseInt(input.dataset.price);
+            const total = qty * price;
+            catTotal += total;
+            input.parentElement.nextElementSibling.querySelector('.amount').textContent = total;
+          }
+        });
+        document.getElementById(`cat-${index}-total`).textContent = catTotal;
+        grandTotal += catTotal;
+      });
+      document.getElementById('grand-total').textContent = grandTotal;
+    }
+
+    function clearQuantities() {
+      document.querySelectorAll('input').forEach(input => input.value = '');
+      document.querySelectorAll('.amount').forEach(span => span.textContent = '0');
+      updateTotals();
+    }
+
+    const content = document.getElementById('content');
+    categories.forEach((cat, index) => {
+      const label = document.createElement('div');
+      label.className = 'section-label';
+      label.textContent = cat.label;
+      content.appendChild(label);
+      content.appendChild(createTable(cat, index));
+    });
+
+    const totalDiv = document.createElement('div');
+    totalDiv.innerHTML = `<h2 style="text-align:right;">總計：<span id="grand-total">0</span> 元</h2>`;
+    content.appendChild(totalDiv);
+  </script>
+</body>
+</html>
