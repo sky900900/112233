@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>特產快遞 計算表</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 18px;
+      padding: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 6px;
+      text-align: center;
+    }
+    .header {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .green-bg {
+      background-color: #CCFFCC;
+    }
+    .gray-bg {
+      background-color: #F2F2F2;
+      height: 15px;
+    }
+    .red-text {
+      color: #C00000;
+    }
+    .result-row {
+      background-color: #006600;
+      font-size: 22px;
+      font-weight: bold;
+      color: #FFFFFF;
+    }
+    .change-text {
+      color: #C00000;
+      font-weight: bold;
+    }
+    input[type="number"] {
+      width: 80px;
+      font-size: 18px;
+    }
+    input[type="text"] {
+      width: 100px;
+      font-size: 18px;
+    }
+    .btn {
+      padding: 8px 16px;
+      font-size: 18px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">特產快遞 計算表</div>
+  <br>
+
+  <table border="1">
+    <tr class="green-bg">
+      <th>品項</th>
+      <th>數量</th>
+      <th>金額</th>
+    </tr>
+
+    <tr class="red-text">
+      <td>(A)100元快捷件數</td>
+      <td><input type="number" id="qtyA" oninput="update()"></td>
+      <td id="amtA">0</td>
+    </tr>
+    <tr class="red-text">
+      <td>(B)125元快捷件數</td>
+      <td><input type="number" id="qtyB" oninput="update()"></td>
+      <td id="amtB">0</td>
+    </tr>
+    <tr class="red-text">
+      <td>(C)145元快捷件數</td>
+      <td><input type="number" id="qtyC" oninput="update()"></td>
+      <td id="amtC">0</td>
+    </tr>
+    <tr class="red-text">
+      <td>(D)165元快捷件數</td>
+      <td><input type="number" id="qtyD" oninput="update()"></td>
+      <td id="amtD">0</td>
+    </tr>
+
+    <tr class="gray-bg"><td colspan="3"></td></tr>
+
+    <tr>
+      <td colspan="2">鳳梨 總金額</td>
+      <td><input type="number" id="pineapple" oninput="update()"></td>
+    </tr>
+
+    <tr class="gray-bg"><td colspan="3"></td></tr>
+
+    <tr>
+      <td colspan="2">代收貨價 金額</td>
+      <td><input type="number" id="cod" oninput="update()"></td>
+    </tr>
+
+    <tr class="gray-bg" style="height: 25px;"><td colspan="3"></td></tr>
+
+    <tr class="result-row">
+      <td colspan="3" id="result">共 0 件，應收 0 元</td>
+    </tr>
+
+    <tr class="gray-bg" style="height: 25px;"><td colspan="3"></td></tr>
+
+    <tr>
+      <td>客人付費</td>
+      <td colspan="2"><input type="number" id="payment" oninput="update()"></td>
+    </tr>
+    <tr>
+      <td>應找金額</td>
+      <td colspan="2" class="change-text" id="change"></td>
+    </tr>
+  </table>
+
+  <button class="btn" onclick="clearAll()">【清除數量】</button>
+
+  <script>
+    function update() {
+      let qtyA = Number(document.getElementById('qtyA').value) || 0;
+      let qtyB = Number(document.getElementById('qtyB').value) || 0;
+      let qtyC = Number(document.getElementById('qtyC').value) || 0;
+      let qtyD = Number(document.getElementById('qtyD').value) || 0;
+
+      let amtA = qtyA * 100;
+      let amtB = qtyB * 125;
+      let amtC = qtyC * 145;
+      let amtD = qtyD * 165;
+
+      document.getElementById('amtA').textContent = amtA;
+      document.getElementById('amtB').textContent = amtB;
+      document.getElementById('amtC').textContent = amtC;
+      document.getElementById('amtD').textContent = amtD;
+
+      let pineapple = Number(document.getElementById('pineapple').value) || 0;
+      let cod = Number(document.getElementById('cod').value) || 0;
+
+      let totalQty = qtyA + qtyB + qtyC + qtyD;
+      let totalAmt = amtA + amtB + amtC + amtD + pineapple + cod;
+
+      document.getElementById('result').textContent = `共 ${totalQty} 件，應收 ${totalAmt} 元`;
+
+      let payment = Number(document.getElementById('payment').value) || 0;
+      let change = payment - totalAmt;
+
+      let changeDisplay = '';
+      if (payment === 0) {
+        changeDisplay = '';
+      } else if (change < 0) {
+        changeDisplay = '不 足';
+      } else {
+        changeDisplay = change;
+      }
+
+      document.getElementById('change').textContent = changeDisplay;
+    }
+
+    function clearAll() {
+      const ids = ['qtyA', 'qtyB', 'qtyC', 'qtyD', 'pineapple', 'cod', 'payment'];
+      ids.forEach(id => document.getElementById(id).value = '');
+      update();
+    }
+  </script>
+
+</body>
+</html>
